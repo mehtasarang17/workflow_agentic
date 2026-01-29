@@ -1,0 +1,126 @@
+:root {
+  --bg-dark: #0a0a0b;
+  --bg-card: #131315;
+  --bg-card-hover: #1c1c1f;
+  --primary: #6366f1;
+  /* Indigo 500 */
+  --primary-glow: rgba(99, 102, 241, 0.4);
+  --success: #10b981;
+  --text-main: #ffffff;
+  --text-muted: #a1a1aa;
+  --border: #27272a;
+
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  color: var(--text-main);
+  background-color: var(--bg-dark);
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Utilities */
+.glass-panel {
+  background: rgba(19, 19, 21, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+}
+
+.glow-text {
+  text-shadow: 0 0 20px var(--primary-glow);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 25px var(--primary-glow);
+}
+
+.input-field {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  width: 100%;
+  font-size: 1rem;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.input-field:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.code-block {
+  font-family: 'Fira Code', monospace;
+  background: #000;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #333;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #e5e5e5;
+  overflow-x: auto;
+}
+
+/* React Flow Custom Overrides */
+.react-flow__node {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.react-flow__node-default,
+.react-flow__node-input,
+.react-flow__node-output {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.react-flow__handle {
+  opacity: 0.8;
+}

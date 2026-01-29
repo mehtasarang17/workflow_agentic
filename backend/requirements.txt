@@ -1,0 +1,14 @@
+flask
+flask-sqlalchemy
+psycopg2-binary
+celery
+redis
+requests
+boto3
+langchain
+langchain-community
+langchain-aws
+langgraph
+python-dotenv
+flask-cors
+tenacity
