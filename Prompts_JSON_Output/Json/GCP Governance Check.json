@@ -1,0 +1,151 @@
+{
+  "exported_at": "2026-01-31T10:20:19.738241",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow checks if a GCP bucket has public access and creates a GitHub issue if it does.",
+      "is_active": true,
+      "name": "Check GCP Bucket Public Access and Create GitHub Issue",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "from": "node_2",
+            "to": "node_3"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_3",
+            "sourceHandle": "true",
+            "to": "node_4"
+          },
+          {
+            "from": "node_4",
+            "to": "node_5"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_3",
+            "sourceHandle": "false",
+            "to": "node_5"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Trigger Workflow",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_2",
+            "integration_id": 54,
+            "integration_type_name": "Gcp",
+            "label": "Check GCP Bucket Public Access",
+            "nodeNumber": 2,
+            "params": {
+              "integration_types": "Gcp",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_gcp_bucket_policy_public_access",
+            "task_display_name": "Check Insecure Hosting",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_2.data.public_access_detected}}",
+                "operator": "eq",
+                "right": "\"true\"",
+                "type": "simple"
+              },
+              "false_nodes": [],
+              "true_nodes": []
+            },
+            "continue_on_error": false,
+            "id": "node_3",
+            "label": "Is Bucket Public?",
+            "nodeNumber": 3,
+            "params": {},
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_4",
+            "integration_id": 50,
+            "integration_type_name": "Github",
+            "label": "Create GitHub Issue",
+            "nodeNumber": 4,
+            "params": {
+              "body": "Public access detected on GCP bucket. Please review and fix permissions.",
+              "integration_types": "Github",
+              "repo": "org/repo",
+              "timeout_seconds": "300",
+              "title": "Fix GCP Bucket Permissions"
+            },
+            "position": {
+              "x": 850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "create_issue",
+            "task_display_name": "Create Issue",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Public access detected and GitHub issue created."
+            },
+            "continue_on_error": false,
+            "id": "node_5",
+            "label": "Log Action",
+            "nodeNumber": 5,
+            "params": {},
+            "position": {
+              "x": 1100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          }
+        ]
+      }
+    }
+  ]
+}

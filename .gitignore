@@ -1,6 +1,8 @@
-.env
 __pycache__/
-*.pyc
-node_modules/
-dist/
+*.py[cod]
+*$py.class
+.DS_Store
 .env
+venv/
+env/
+*.docx

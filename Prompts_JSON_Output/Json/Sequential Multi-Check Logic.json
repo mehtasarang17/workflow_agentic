@@ -1,0 +1,235 @@
+{
+  "exported_at": "2026-01-31T10:23:53.465674",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow triggers on a webhook and performs security checks based on audit and emergency conditions.",
+      "is_active": true,
+      "name": "Security Audit Workflow",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_2",
+            "sourceHandle": "true",
+            "to": "node_3"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_2",
+            "sourceHandle": "true",
+            "to": "node_4"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_2",
+            "sourceHandle": "false",
+            "to": "node_5"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_5",
+            "sourceHandle": "true",
+            "to": "node_6"
+          },
+          {
+            "from": "node_3",
+            "to": "node_7"
+          },
+          {
+            "from": "node_4",
+            "to": "node_7"
+          },
+          {
+            "from": "node_6",
+            "to": "node_7"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_5",
+            "sourceHandle": "false",
+            "to": "node_7"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Webhook Trigger",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_1.data.body.audit}}",
+                "operator": "eq",
+                "right": "\"true\"",
+                "type": "simple"
+              },
+              "false_nodes": [
+                "node_5"
+              ],
+              "true_nodes": [
+                "node_3",
+                "node_4"
+              ]
+            },
+            "continue_on_error": false,
+            "id": "node_2",
+            "label": "Check if Audit is True",
+            "nodeNumber": 2,
+            "params": {},
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_3",
+            "integration_id": 5,
+            "integration_type_name": "Aws",
+            "label": "AWS Security Task",
+            "nodeNumber": 3,
+            "params": {
+              "integration_types": "Aws",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_iam_full_admin_privileges",
+            "task_display_name": "List Blocked Ips Waf",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_4",
+            "integration_id": 54,
+            "integration_type_name": "Gcp",
+            "label": "GCP Security Task",
+            "nodeNumber": 4,
+            "params": {
+              "integration_types": "Gcp",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_gcp_website_hosting_insecure",
+            "task_display_name": "Check Insecure Hosting",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_1.data.body.emergency}}",
+                "operator": "eq",
+                "right": "\"true\"",
+                "type": "simple"
+              },
+              "false_nodes": [],
+              "true_nodes": [
+                "node_6"
+              ]
+            },
+            "continue_on_error": false,
+            "id": "node_5",
+            "label": "Check if Emergency is True",
+            "nodeNumber": 5,
+            "params": {},
+            "position": {
+              "x": 1100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_6",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send Critical Response Email",
+            "nodeNumber": 6,
+            "params": {
+              "body": "This is a critical response email.",
+              "integration_types": "Email",
+              "subject": "Critical Response",
+              "timeout_seconds": "300",
+              "to": "mehtasarang17@gmail.com"
+            },
+            "position": {
+              "x": 1350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send Email",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Logging the final logic path taken."
+            },
+            "continue_on_error": false,
+            "id": "node_7",
+            "label": "Log Final Logic Path",
+            "nodeNumber": 7,
+            "params": {},
+            "position": {
+              "x": 1600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          }
+        ]
+      }
+    }
+  ]
+}

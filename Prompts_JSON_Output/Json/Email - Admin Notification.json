@@ -1,0 +1,62 @@
+{
+  "exported_at": "2026-01-31T10:14:30.400013",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow sends an email to mehtasarang17@gmail.com with a subject 'Admin Alert' and a body explaining that a new event was triggered.",
+      "is_active": true,
+      "name": "Send Admin Alert Email",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Trigger Event",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_2",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send Email",
+            "nodeNumber": 2,
+            "params": {
+              "body": "A new event was triggered.",
+              "integration_types": "Email",
+              "subject": "Admin Alert",
+              "timeout_seconds": "300",
+              "to": "mehtasarang17@gmail.com"
+            },
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send Email",
+            "task_type_filter": "action",
+            "type": "integration"
+          }
+        ]
+      }
+    }
+  ]
+}

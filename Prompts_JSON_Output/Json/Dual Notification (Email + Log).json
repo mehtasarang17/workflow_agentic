@@ -1,0 +1,87 @@
+{
+  "exported_at": "2026-01-31T10:19:52.109272",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow receives a webhook, sends a summary email to mehtasarang17@gmail.com, and logs the entire payload from the webhook for debugging.",
+      "is_active": true,
+      "name": "Webhook Summary Email and Debug Log",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "from": "node_1",
+            "to": "node_3"
+          },
+          {
+            "from": "node_2",
+            "to": "node_3"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Receive Webhook",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_2",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send Summary Email",
+            "nodeNumber": 2,
+            "params": {
+              "body": "Here is the summary of the webhook payload: {{$node_1.data.body}}",
+              "integration_types": "Email",
+              "subject": "Webhook Summary",
+              "timeout_seconds": "300",
+              "to": "mehtasarang17@gmail.com"
+            },
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send Summary Email",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Webhook payload: {{$node_1.data.body}}"
+            },
+            "continue_on_error": false,
+            "id": "node_3",
+            "label": "Log Webhook Payload",
+            "nodeNumber": 3,
+            "params": {},
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          }
+        ]
+      }
+    }
+  ]
+}

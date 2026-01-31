@@ -1,0 +1,62 @@
+{
+  "exported_at": "2026-01-30T09:02:15.732286",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow receives a webhook and creates a new issue in the specified Gitlab project.",
+      "is_active": true,
+      "name": "Create Gitlab Issue",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node-1769763735732",
+            "to": "node-1769763735832"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node-1769763735732",
+            "label": "Receive Webhook",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node-1769763735832",
+            "integration_id": 53,
+            "integration_type_name": "Gitlab",
+            "label": "Create Gitlab Issue",
+            "nodeNumber": 2,
+            "params": {
+              "integration_types": "Gitlab",
+              "params": "",
+              "project_path": "mehtasarang17/test-repo",
+              "timeout_seconds": "300",
+              "title": "New Task"
+            },
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "create_issue",
+            "task_display_name": "Create Gitlab Issue",
+            "task_type_filter": "action",
+            "type": "integration"
+          }
+        ]
+      }
+    }
+  ]
+}

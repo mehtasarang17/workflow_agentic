@@ -1,0 +1,109 @@
+{
+  "exported_at": "2026-01-31T10:13:20.525083",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow checks for public bucket policy access in GCP and sends an email report to mehtasarang17@gmail.com.",
+      "is_active": true,
+      "name": "Check Public Bucket Policy Access in GCP",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "from": "node_2",
+            "to": "node_3"
+          },
+          {
+            "from": "node_3",
+            "to": "node_4"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Trigger Workflow",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_2",
+            "integration_id": 54,
+            "integration_type_name": "Gcp",
+            "label": "Check GCP Bucket Policy",
+            "nodeNumber": 2,
+            "params": {
+              "integration_types": "Gcp",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_gcp_bucket_policy_public_access",
+            "task_display_name": "Check GCP Bucket Policy",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_3",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send Email Report",
+            "nodeNumber": 3,
+            "params": {
+              "body": "The GCP public bucket policy access check is complete. Please see the details below:\n\n{{$node_2.data.body.details}}",
+              "integration_types": "Email",
+              "subject": "GCP Public Bucket Policy Access Report",
+              "timeout_seconds": "300",
+              "to": "mehtasarang17@gmail.com"
+            },
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send Email Report",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Workflow completed successfully."
+            },
+            "continue_on_error": false,
+            "id": "node_4",
+            "label": "Log Completion",
+            "nodeNumber": 4,
+            "params": {},
+            "position": {
+              "x": 850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          }
+        ]
+      }
+    }
+  ]
+}

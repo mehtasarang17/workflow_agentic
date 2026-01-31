@@ -1,0 +1,404 @@
+{
+  "exported_at": "2026-01-31T10:22:44.858770",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "Receives a webhook with a provider, checks the specified service, sends an email, logs the result, and creates a summary Github issue.",
+      "is_active": true,
+      "name": "Triage Workflow",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_2",
+            "sourceHandle": "true",
+            "to": "node_3"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_2",
+            "sourceHandle": "false",
+            "to": "node_5"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_5",
+            "sourceHandle": "true",
+            "to": "node_6"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_5",
+            "sourceHandle": "false",
+            "to": "node_7"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_7",
+            "sourceHandle": "true",
+            "to": "node_8"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_7",
+            "sourceHandle": "false",
+            "to": "node_9"
+          },
+          {
+            "from": "node_3",
+            "to": "node_4"
+          },
+          {
+            "from": "node_4",
+            "to": "node_12"
+          },
+          {
+            "from": "node_6",
+            "to": "node_10"
+          },
+          {
+            "from": "node_10",
+            "to": "node_12"
+          },
+          {
+            "from": "node_8",
+            "to": "node_11"
+          },
+          {
+            "from": "node_11",
+            "to": "node_12"
+          },
+          {
+            "from": "node_9",
+            "to": "node_12"
+          },
+          {
+            "from": "node_12",
+            "to": "node_13"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Receive Webhook",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_1.data.body.provider}}",
+                "operator": "eq",
+                "right": "\"aws\"",
+                "type": "simple"
+              },
+              "false_nodes": [
+                "node_5",
+                "node_7"
+              ],
+              "true_nodes": [
+                "node_3"
+              ]
+            },
+            "continue_on_error": false,
+            "id": "node_2",
+            "label": "Check Provider",
+            "nodeNumber": 2,
+            "params": {},
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_3",
+            "integration_id": 5,
+            "integration_type_name": "Aws",
+            "label": "Check AWS IAM Admin Privileges",
+            "nodeNumber": 3,
+            "params": {
+              "integration_types": "Aws",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_iam_full_admin_privileges",
+            "task_display_name": "List Blocked Ips Waf",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_4",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send AWS Email",
+            "nodeNumber": 4,
+            "params": {
+              "body": "AWS IAM admin privileges check completed.",
+              "integration_types": "Email",
+              "subject": "AWS IAM Privileges Check",
+              "timeout_seconds": "300",
+              "to": "admin@example.com"
+            },
+            "position": {
+              "x": 850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send Email",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_1.data.body.provider}}",
+                "operator": "eq",
+                "right": "\"azure\"",
+                "type": "simple"
+              },
+              "false_nodes": [
+                "node_7"
+              ],
+              "true_nodes": [
+                "node_6"
+              ]
+            },
+            "continue_on_error": false,
+            "id": "node_5",
+            "label": "Check Azure Provider",
+            "nodeNumber": 5,
+            "params": {},
+            "position": {
+              "x": 1100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_6",
+            "integration_id": 55,
+            "integration_type_name": "Azure",
+            "label": "Check Azure Networking",
+            "nodeNumber": 6,
+            "params": {
+              "integration_types": "Azure",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 1350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_azure_accelerated_networking_disabled",
+            "task_display_name": "Check Accelerated Networking",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_1.data.body.provider}}",
+                "operator": "eq",
+                "right": "\"gcp\"",
+                "type": "simple"
+              },
+              "false_nodes": [
+                "node_9"
+              ],
+              "true_nodes": [
+                "node_8"
+              ]
+            },
+            "continue_on_error": false,
+            "id": "node_7",
+            "label": "Check GCP Provider",
+            "nodeNumber": 7,
+            "params": {},
+            "position": {
+              "x": 1600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_8",
+            "integration_id": 54,
+            "integration_type_name": "Gcp",
+            "label": "Check GCP Bucket Policy",
+            "nodeNumber": 8,
+            "params": {
+              "integration_types": "Gcp",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 1850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_gcp_bucket_policy_public_access",
+            "task_display_name": "Check Insecure Hosting",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "warning",
+              "message": "No integrations available for this provider."
+            },
+            "continue_on_error": false,
+            "id": "node_9",
+            "label": "Log No Integrations Available",
+            "nodeNumber": 9,
+            "params": {},
+            "position": {
+              "x": 2100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_10",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send Azure Email",
+            "nodeNumber": 10,
+            "params": {
+              "body": "Azure networking check completed.",
+              "integration_types": "Email",
+              "subject": "Azure Networking Check",
+              "timeout_seconds": "300",
+              "to": "admin@example.com"
+            },
+            "position": {
+              "x": 2350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send Email",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_11",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send GCP Email",
+            "nodeNumber": 11,
+            "params": {
+              "body": "GCP bucket policy check completed.",
+              "integration_types": "Email",
+              "subject": "GCP Bucket Policy Check",
+              "timeout_seconds": "300",
+              "to": "admin@example.com"
+            },
+            "position": {
+              "x": 2600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send Email",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info"
+            },
+            "continue_on_error": false,
+            "id": "node_12",
+            "label": "Log Result",
+            "nodeNumber": 12,
+            "params": {},
+            "position": {
+              "x": 2850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_13",
+            "integration_id": 50,
+            "integration_type_name": "Github",
+            "label": "Create Github Issue",
+            "nodeNumber": 13,
+            "params": {
+              "body": "Triage completed with the following results:\n- AWS: IAM admin privileges checked.\n- Azure: Networking check completed.\n- GCP: Bucket policy checked.",
+              "integration_types": "Github",
+              "repo": "org/repo",
+              "timeout_seconds": "300",
+              "title": "Triage Summary"
+            },
+            "position": {
+              "x": 3100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "create_issue",
+            "task_display_name": "Create Issue",
+            "task_type_filter": "action",
+            "type": "integration"
+          }
+        ]
+      }
+    }
+  ]
+}

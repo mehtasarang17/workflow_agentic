@@ -1,0 +1,121 @@
+{
+  "exported_at": "2026-01-31T10:15:49.782373",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow receives a webhook containing a 'status' field. It checks if the status is 'critical'. If true, it sends an email to mehtasarang17@gmail.com. If false, it logs the status as 'normal'.",
+      "is_active": true,
+      "name": "Status Check Workflow",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_2",
+            "sourceHandle": "true",
+            "to": "node_3"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_2",
+            "sourceHandle": "false",
+            "to": "node_4"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Receive Status",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_1.data.body.status}}",
+                "operator": "eq",
+                "right": "\"critical\"",
+                "type": "simple"
+              },
+              "false_nodes": [],
+              "true_nodes": []
+            },
+            "continue_on_error": false,
+            "id": "node_2",
+            "label": "Check Status",
+            "nodeNumber": 2,
+            "params": {},
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_3",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send Critical Email",
+            "nodeNumber": 3,
+            "params": {
+              "body": "A critical status has been detected.",
+              "integration_types": "Email",
+              "subject": "Critical Status Alert",
+              "timeout_seconds": "300",
+              "to": "mehtasarang17@gmail.com"
+            },
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send Critical Email",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Status is normal."
+            },
+            "continue_on_error": false,
+            "id": "node_4",
+            "label": "Log Normal Status",
+            "nodeNumber": 4,
+            "params": {},
+            "position": {
+              "x": 850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          }
+        ]
+      }
+    }
+  ]
+}

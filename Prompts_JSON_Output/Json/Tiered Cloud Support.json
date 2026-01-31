@@ -1,0 +1,339 @@
+{
+  "exported_at": "2026-01-31T10:25:01.896194",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow receives a webhook with a 'tier' value and performs an audit based on the tier. It logs the actions and sends a 'Processing Done' email to the admin.",
+      "is_active": true,
+      "name": "Tier Based Audit Workflow",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_2",
+            "sourceHandle": "true",
+            "to": "node_3"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_2",
+            "sourceHandle": "false",
+            "to": "node_4"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_4",
+            "sourceHandle": "true",
+            "to": "node_5"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_4",
+            "sourceHandle": "false",
+            "to": "node_6"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_6",
+            "sourceHandle": "true",
+            "to": "node_7"
+          },
+          {
+            "from": "node_3",
+            "to": "node_8"
+          },
+          {
+            "from": "node_5",
+            "to": "node_9"
+          },
+          {
+            "from": "node_7",
+            "to": "node_10"
+          },
+          {
+            "from": "node_8",
+            "to": "node_11"
+          },
+          {
+            "from": "node_9",
+            "to": "node_11"
+          },
+          {
+            "from": "node_10",
+            "to": "node_11"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_6",
+            "sourceHandle": "false",
+            "to": "node_8"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Receive Webhook",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_1.data.body.tier}}",
+                "operator": "eq",
+                "right": "\"1\"",
+                "type": "simple"
+              },
+              "false_nodes": [
+                "node_4"
+              ],
+              "true_nodes": [
+                "node_3"
+              ]
+            },
+            "continue_on_error": false,
+            "id": "node_2",
+            "label": "Check Tier",
+            "nodeNumber": 2,
+            "params": {},
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_3",
+            "integration_id": 5,
+            "integration_type_name": "Aws",
+            "label": "Run AWS Audit",
+            "nodeNumber": 3,
+            "params": {
+              "integration_types": "Aws",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_iam_full_admin_privileges",
+            "task_display_name": "List Blocked Ips Waf",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_1.data.body.tier}}",
+                "operator": "eq",
+                "right": "\"2\"",
+                "type": "simple"
+              },
+              "false_nodes": [
+                "node_6"
+              ],
+              "true_nodes": [
+                "node_5"
+              ]
+            },
+            "continue_on_error": false,
+            "id": "node_4",
+            "label": "Check Tier",
+            "nodeNumber": 4,
+            "params": {},
+            "position": {
+              "x": 850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_5",
+            "integration_id": 55,
+            "integration_type_name": "Azure",
+            "label": "Run Azure Audit",
+            "nodeNumber": 5,
+            "params": {
+              "integration_types": "Azure",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 1100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_azure_full_admin_privileges",
+            "task_display_name": "Check Accelerated Networking",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_1.data.body.tier}}",
+                "operator": "eq",
+                "right": "\"3\"",
+                "type": "simple"
+              },
+              "false_nodes": [],
+              "true_nodes": [
+                "node_7"
+              ]
+            },
+            "continue_on_error": false,
+            "id": "node_6",
+            "label": "Check Tier",
+            "nodeNumber": 6,
+            "params": {},
+            "position": {
+              "x": 1350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_7",
+            "integration_id": 54,
+            "integration_type_name": "Gcp",
+            "label": "Run GCP Audit",
+            "nodeNumber": 7,
+            "params": {
+              "integration_types": "Gcp",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 1600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_gcp_bucket_policy_public_access",
+            "task_display_name": "Check Insecure Hosting",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "AWS Audit Completed"
+            },
+            "continue_on_error": false,
+            "id": "node_8",
+            "label": "Log AWS Audit",
+            "nodeNumber": 8,
+            "params": {},
+            "position": {
+              "x": 1850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Azure Audit Completed"
+            },
+            "continue_on_error": false,
+            "id": "node_9",
+            "label": "Log Azure Audit",
+            "nodeNumber": 9,
+            "params": {},
+            "position": {
+              "x": 2100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "GCP Audit Completed"
+            },
+            "continue_on_error": false,
+            "id": "node_10",
+            "label": "Log GCP Audit",
+            "nodeNumber": 10,
+            "params": {},
+            "position": {
+              "x": 2350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_11",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send Processing Done Email",
+            "nodeNumber": 11,
+            "params": {
+              "body": "The audit processing is complete.",
+              "integration_types": "Email",
+              "subject": "Processing Done",
+              "timeout_seconds": "300",
+              "to": "admin@example.com"
+            },
+            "position": {
+              "x": 2600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send Email",
+            "task_type_filter": "action",
+            "type": "integration"
+          }
+        ]
+      }
+    }
+  ]
+}

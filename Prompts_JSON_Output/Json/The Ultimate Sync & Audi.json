@@ -1,0 +1,230 @@
+{
+  "exported_at": "2026-01-31T10:25:32.929522",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow receives a security alert via webhook, checks IAM full admin privileges in AWS and Azure, creates a Github issue with findings, sends a high-priority email, and logs the outcome of each check.",
+      "is_active": true,
+      "name": "Security Alert Handling Workflow",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "from": "node_2",
+            "to": "node_6"
+          },
+          {
+            "from": "node_1",
+            "to": "node_3"
+          },
+          {
+            "from": "node_3",
+            "to": "node_7"
+          },
+          {
+            "from": "node_2",
+            "to": "node_4"
+          },
+          {
+            "from": "node_4",
+            "to": "node_8"
+          },
+          {
+            "from": "node_3",
+            "to": "node_4"
+          },
+          {
+            "from": "node_4",
+            "to": "node_5"
+          },
+          {
+            "from": "node_5",
+            "to": "node_9"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Receive Security Alert",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_2",
+            "integration_id": 5,
+            "integration_type_name": "Aws",
+            "label": "Check IAM Full Admin Privileges in AWS",
+            "nodeNumber": 2,
+            "params": {
+              "integration_types": "Aws",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_iam_full_admin_privileges",
+            "task_display_name": "Check IAM Full Admin Privileges in AWS",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_3",
+            "integration_id": 55,
+            "integration_type_name": "Azure",
+            "label": "Check Azure Admin Privileges",
+            "nodeNumber": 3,
+            "params": {
+              "integration_types": "Azure",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_azure_full_admin_privileges",
+            "task_display_name": "Check Azure Admin Privileges",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_4",
+            "integration_id": 50,
+            "integration_type_name": "Github",
+            "label": "Create Github Issue",
+            "nodeNumber": 4,
+            "params": {
+              "body": "Findings from the security alert checks.",
+              "integration_types": "Github",
+              "repo": "repo_name",
+              "timeout_seconds": "300",
+              "title": "Security Alert Findings"
+            },
+            "position": {
+              "x": 850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "create_issue",
+            "task_display_name": "Create Github Issue",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_5",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send High-Priority Email",
+            "nodeNumber": 5,
+            "params": {
+              "body": "Please find attached the findings from the security alert checks.",
+              "integration_types": "Email",
+              "subject": "High-Priority: Security Alert Findings",
+              "timeout_seconds": "300",
+              "to": "mehtasarang17@gmail.com"
+            },
+            "position": {
+              "x": 1100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send High-Priority Email",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "{{$node_2.data.message}}"
+            },
+            "continue_on_error": false,
+            "id": "node_6",
+            "label": "Log AWS Check Outcome",
+            "nodeNumber": 6,
+            "params": {},
+            "position": {
+              "x": 1350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "{{$node_3.data.message}}"
+            },
+            "continue_on_error": false,
+            "id": "node_7",
+            "label": "Log Azure Check Outcome",
+            "nodeNumber": 7,
+            "params": {},
+            "position": {
+              "x": 1600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "{{$node_4.data.message}}"
+            },
+            "continue_on_error": false,
+            "id": "node_8",
+            "label": "Log Github Issue Creation Outcome",
+            "nodeNumber": 8,
+            "params": {},
+            "position": {
+              "x": 1850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "{{$node_5.data.message}}"
+            },
+            "continue_on_error": false,
+            "id": "node_9",
+            "label": "Log Email Sent Outcome",
+            "nodeNumber": 9,
+            "params": {},
+            "position": {
+              "x": 2100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          }
+        ]
+      }
+    }
+  ]
+}

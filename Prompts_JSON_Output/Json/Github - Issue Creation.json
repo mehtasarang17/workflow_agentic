@@ -1,0 +1,62 @@
+{
+  "exported_at": "2026-01-31T10:09:59.516354",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow receives a webhook and creates a new issue in the Github repository 'mehtasarang17/test-repo' with the title 'Documentation Update'.",
+      "is_active": true,
+      "name": "Create Github Issue Workflow",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Receive Webhook",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_2",
+            "integration_id": 50,
+            "integration_type_name": "Github",
+            "label": "Create Github Issue",
+            "nodeNumber": 2,
+            "params": {
+              "body": "Please update the documentation as per the latest changes.",
+              "integration_types": "Github",
+              "repo": "mehtasarang17/test-repo",
+              "timeout_seconds": "300",
+              "title": "Documentation Update"
+            },
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "create_issue",
+            "task_display_name": "Create Github Issue",
+            "task_type_filter": "action",
+            "type": "integration"
+          }
+        ]
+      }
+    }
+  ]
+}

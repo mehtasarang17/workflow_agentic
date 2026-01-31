@@ -1,0 +1,110 @@
+{
+  "exported_at": "2026-01-31T10:18:32.172259",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow lists all Github repositories and sends an email with the repository list.",
+      "is_active": true,
+      "name": "List Github Repositories and Send Email",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "from": "node_2",
+            "to": "node_3"
+          },
+          {
+            "from": "node_3",
+            "to": "node_4"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Trigger Workflow",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_2",
+            "integration_id": 50,
+            "integration_type_name": "Github",
+            "label": "List Github Repositories",
+            "nodeNumber": 2,
+            "params": {
+              "integration_types": "Github",
+              "repo_type": "all",
+              "sort": "created",
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "list_repos",
+            "task_display_name": "List Repositories",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_3",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send Email with Repository List",
+            "nodeNumber": 3,
+            "params": {
+              "body": "{{$node_2.data.body.repositories}}",
+              "integration_types": "Email",
+              "subject": "Github Repository List",
+              "timeout_seconds": "300",
+              "to": "mehtasarang17@gmail.com"
+            },
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send Email",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Email sent successfully"
+            },
+            "continue_on_error": false,
+            "id": "node_4",
+            "label": "Log Completion",
+            "nodeNumber": 4,
+            "params": {},
+            "position": {
+              "x": 850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          }
+        ]
+      }
+    }
+  ]
+}

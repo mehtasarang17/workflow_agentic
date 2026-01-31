@@ -1,0 +1,119 @@
+{
+  "exported_at": "2026-01-31T10:18:04.864657",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow checks if the cloud is AWS and performs an S3 public access check if true. Otherwise, it logs a message.",
+      "is_active": true,
+      "name": "Cloud Access Check Workflow",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_2",
+            "sourceHandle": "true",
+            "to": "node_3"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_2",
+            "sourceHandle": "false",
+            "to": "node_4"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Receive Webhook",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_1.data.body.cloud}}",
+                "operator": "eq",
+                "right": "\"aws\"",
+                "type": "simple"
+              },
+              "false_nodes": [],
+              "true_nodes": []
+            },
+            "continue_on_error": false,
+            "id": "node_2",
+            "label": "Check Cloud Type",
+            "nodeNumber": 2,
+            "params": {},
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_3",
+            "integration_id": 5,
+            "integration_type_name": "Aws",
+            "label": "Check S3 Public Access",
+            "nodeNumber": 3,
+            "params": {
+              "bucket_name": "{{$node_1.data.body.bucket_name}}",
+              "integration_types": "Aws",
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_s3_public_access",
+            "task_display_name": "Check S3 Public Access",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Skipping cloud check"
+            },
+            "continue_on_error": false,
+            "id": "node_4",
+            "label": "Skipping Cloud Check",
+            "nodeNumber": 4,
+            "params": {},
+            "position": {
+              "x": 850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          }
+        ]
+      }
+    }
+  ]
+}

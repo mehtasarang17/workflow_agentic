@@ -1,0 +1,151 @@
+{
+  "exported_at": "2026-01-31T10:19:11.578702",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow checks if Azure accelerated networking is enabled. If disabled, it sends a critical email to mehtasarang17@gmail.com.",
+      "is_active": true,
+      "name": "Azure Accelerated Networking Check",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "from": "node_2",
+            "to": "node_3"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "true"
+            },
+            "from": "node_3",
+            "sourceHandle": "true",
+            "to": "node_4"
+          },
+          {
+            "condition": {
+              "type": "expression",
+              "value": "false"
+            },
+            "from": "node_3",
+            "sourceHandle": "false",
+            "to": "node_5"
+          },
+          {
+            "from": "node_4",
+            "to": "node_5"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Trigger Workflow",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_2",
+            "integration_id": 55,
+            "integration_type_name": "Azure",
+            "label": "Check Azure Accelerated Networking",
+            "nodeNumber": 2,
+            "params": {
+              "integration_types": "Azure",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_azure_accelerated_networking_disabled",
+            "task_display_name": "Check Azure Accelerated Networking",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "condition": {
+                "format": "simple",
+                "left": "{{$node_2.data.body.disabled}}",
+                "operator": "eq",
+                "right": "\"true\"",
+                "type": "simple"
+              },
+              "false_nodes": [],
+              "true_nodes": []
+            },
+            "continue_on_error": false,
+            "id": "node_3",
+            "label": "Is Accelerated Networking Disabled?",
+            "nodeNumber": 3,
+            "params": {},
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "condition"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_4",
+            "integration_id": 48,
+            "integration_type_name": "Email",
+            "label": "Send Critical Email",
+            "nodeNumber": 4,
+            "params": {
+              "body": "Azure accelerated networking is currently disabled. Please check and enable it.",
+              "integration_types": "Email",
+              "subject": "Critical: Azure Accelerated Networking is Disabled",
+              "timeout_seconds": "300",
+              "to": "mehtasarang17@gmail.com"
+            },
+            "position": {
+              "x": 850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "send_email",
+            "task_display_name": "Send Critical Email",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Accelerated networking check completed."
+            },
+            "continue_on_error": false,
+            "id": "node_5",
+            "label": "Log Action",
+            "nodeNumber": 5,
+            "params": {},
+            "position": {
+              "x": 1100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          }
+        ]
+      }
+    }
+  ]
+}

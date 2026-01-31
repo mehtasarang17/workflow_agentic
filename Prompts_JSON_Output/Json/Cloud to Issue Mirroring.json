@@ -1,0 +1,142 @@
+{
+  "exported_at": "2026-01-31T10:23:23.233121",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow checks Azure admin privileges and creates issues on Github and Gitlab for remediation tracking.",
+      "is_active": true,
+      "name": "Azure Privileges Check and Issue Creation",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "from": "node_2",
+            "to": "node_3"
+          },
+          {
+            "from": "node_2",
+            "to": "node_4"
+          },
+          {
+            "from": "node_3",
+            "to": "node_5"
+          },
+          {
+            "from": "node_4",
+            "to": "node_5"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Trigger Workflow",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_2",
+            "integration_id": 55,
+            "integration_type_name": "Azure",
+            "label": "Check Azure Admin Privileges",
+            "nodeNumber": 2,
+            "params": {
+              "integration_types": "Azure",
+              "params": {},
+              "timeout_seconds": "300"
+            },
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "check_azure_full_admin_privileges",
+            "task_display_name": "Check Azure Admin Privileges",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_3",
+            "integration_id": 50,
+            "integration_type_name": "Github",
+            "label": "Create Github Issue",
+            "nodeNumber": 3,
+            "params": {
+              "body": "Admin privileges check failed. Remediation needed.",
+              "integration_types": "Github",
+              "repo": "org/repo",
+              "timeout_seconds": "300",
+              "title": "Azure Admin Privileges Issue"
+            },
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "create_issue",
+            "task_display_name": "Create Github Issue",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "continue_on_error": false,
+            "id": "node_4",
+            "integration_id": 53,
+            "integration_type_name": "Gitlab",
+            "label": "Create Gitlab Issue",
+            "nodeNumber": 4,
+            "params": {
+              "body": "Admin privileges check failed. Remediation needed.",
+              "integration_types": "Gitlab",
+              "params": "",
+              "project_path": "group/project",
+              "timeout_seconds": "300",
+              "title": "Azure Admin Privileges Issue"
+            },
+            "position": {
+              "x": 850,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "task": "create_issue",
+            "task_display_name": "Create Gitlab Issue",
+            "task_type_filter": "action",
+            "type": "integration"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Remediation issues created"
+            },
+            "continue_on_error": false,
+            "id": "node_5",
+            "label": "Log Remediation Issues Created",
+            "nodeNumber": 5,
+            "params": {},
+            "position": {
+              "x": 1100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          }
+        ]
+      }
+    }
+  ]
+}

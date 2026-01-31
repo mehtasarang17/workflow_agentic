@@ -1,0 +1,76 @@
+{
+  "exported_at": "2026-01-31T10:15:21.675429",
+  "version": "1.0",
+  "workflow_comments": {},
+  "workflows": [
+    {
+      "description": "This workflow receives a webhook and logs two separate messages: 'Event Received' and then 'Processing Started'.",
+      "is_active": true,
+      "name": "Event Logging Workflow",
+      "workflow_data": {
+        "connections": [
+          {
+            "from": "node_1",
+            "to": "node_2"
+          },
+          {
+            "from": "node_2",
+            "to": "node_3"
+          }
+        ],
+        "nodes": [
+          {
+            "config": {
+              "accept_json_only": true
+            },
+            "continue_on_error": false,
+            "id": "node_1",
+            "label": "Receive Event",
+            "nodeNumber": 1,
+            "params": {},
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "webhook"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Event Received"
+            },
+            "continue_on_error": false,
+            "id": "node_2",
+            "label": "Log Event Received",
+            "nodeNumber": 2,
+            "params": {},
+            "position": {
+              "x": 350,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          },
+          {
+            "config": {
+              "log_level": "info",
+              "message": "Processing Started"
+            },
+            "continue_on_error": false,
+            "id": "node_3",
+            "label": "Log Processing Started",
+            "nodeNumber": 3,
+            "params": {},
+            "position": {
+              "x": 600,
+              "y": 100
+            },
+            "run_all_tasks": false,
+            "type": "log"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -49,7 +49,7 @@ The response must be a single JSON object with this exact structure:
       "workflow_data": {{
         "nodes": [
           {{
-            "id": "node-1",
+            "id": "node_1",
             "type": "webhook",
             "label": "Human Readable Label",
             "config": {{ "accept_json_only": true }},
@@ -57,7 +57,7 @@ The response must be a single JSON object with this exact structure:
           }}
         ],
         "connections": [
-          {{ "from": "node-1", "to": "node-2" }}
+          {{ "from": "node_1", "to": "node_2" }}
         ]
       }},
       "is_active": true
@@ -74,10 +74,12 @@ If an integration is not in this list, create a `log` node with message: "No int
 
 | Service | integration_id | type_name | Available Tasks & Mandatory Params |
 | :--- | :--- | :--- | :--- |
-| **Email** | 48 | `Email` | `send_email` (to, subject, body), `send_bulk_email` (recipients, subject, body) |
-| **AWS** | 42 | `AWS` | `list_blocked_ips_waf` (ipset_name, scope), `unblock_ip_waf` (ipset_name, ip, scope) |
-| **Github** | 49 | `Github` | `create_issue` (params), `list_projects` (params) |
-| **Gitlab** | 45 | `Gitlab` | `create_issue` (params), `list_projects` (params) |
+| **AWS** | 5 | `Aws` | `check_iam_full_admin_privileges` (params), `list_blocked_ips_waf` (ipset_name, scope) |
+| **Github** | 50 | `Github` | `create_issue` (repo, title, body), `list_repos` (repo_type, sort) |
+| **Gitlab** | 53 | `Gitlab` | `create_issue` (project_path, title, body), `list_projects` (organization) |
+| **Azure** | 55 | `Azure` | `check_azure_accelerated_networking_disabled` (params), `check_azure_full_admin_privileges` (params) |
+| **Gcp** | 54 | `Gcp` | `check_gcp_website_hosting_insecure` (params), `check_gcp_bucket_policy_public_access` (params) |
+
 
 ### NODE TYPE SPECIFICATIONS
 | Type | Mandatory Fields |
@@ -85,13 +87,16 @@ If an integration is not in this list, create a `log` node with message: "No int
 | `webhook` | `config`: {{"accept_json_only": true}}, `params`: {{}} |
 | `condition` | `config`: {{"condition": {{"format": "simple", "type": "simple", "left": "{{{{variable}}}}", "operator": "eq/ne/gt/lt", "right": "value"}}, "true_nodes": [], "false_nodes": []}} |
 | `integration` | **ROOT**: `integration_id`, `task`, `task_display_name`, `integration_type_name`, `continue_on_error`: false, `run_all_tasks`: false. <br> **PARAMS**: contains task parameters, `timeout_seconds`: 300, AND `integration_types`: "Same as integration_type_name" |
-| `log` | `config`: {{"message": "..."}} |
+| `log` | `config`: {{"message": "...", "log_level": "info/warning/error"}} |
 | `script` | `params`: {{"script": "python code here"}} |
 | `http` | `config`: {{"url": "...", "method": "GET/POST/PUT/DELETE", "body": {{}}}} |
 
+**CRITICAL - AVOID SCRIPT NODES**: Do NOT use script nodes for simple data extraction. 
+Instead, use template variables directly: `{{$node_N.data.field}}`.
+
 ### EXAMPLE INTEGRATION (Strict Alignment)
 {{
-  "id": "node-2",
+  "id": "node_2",
   "type": "integration",
   "label": "Send Email",
   "integration_id": 48,
@@ -114,20 +119,30 @@ If an integration is not in this list, create a `log` node with message: "No int
 {{
   "id": "node-5",
   "type": "condition",
-  "label": "Check Status",
+  "label": "Check Temperature",
+  "params": {{}},
   "nodeNumber": 5,
   "config": {{
     "condition": {{
       "format": "simple",
       "type": "simple",
-      "left": "{{{{data.status}}}}",
-      "operator": "eq",
-      "right": "blocked"
+      "left": "{{$node_4.data.body.temperature_2m}}",
+      "operator": "lt",
+      "right": "\"2\""
     }},
     "true_nodes": [],
     "false_nodes": []
-  }}
+  }},
+  "continue_on_error": false,
+  "run_all_tasks": false
 }}
+
+### VARIABLE SUBSTITUTION & REFERENCING (MANDATORY FORMAT)
+1. **Format**: ALWAYS use `{{$node_N.data.body.field}}` for Webhooks and HTTP. For integrations, use `{{$node_N.data.field}}`.
+2. **Double Braces**: Use double braces `{{ ... }}`.
+3. **Reference by Node Number**: `N` is the `nodeNumber` of the source node.
+4. **Webhook/HTTP Rule**: Data is always nested in `body`. Use `{{$node_1.data.body.your_field}}`.
+5. **Node IDs**: The system will automatically align `id` with `node_N`.
 
 ### COMPLETE WORKFLOW EXAMPLE (Script → Condition → Branches)
 This shows the CORRECT pattern for workflows with script extraction and conditions:
@@ -135,26 +150,26 @@ This shows the CORRECT pattern for workflows with script extraction and conditio
 **Nodes:**
 ```json
 [
-  {{"id": "node-1", "type": "webhook", "label": "Receive Alert", "nodeNumber": 1}},
-  {{"id": "node-2", "type": "script", "label": "Extract IP", "nodeNumber": 2, "params": {{"script": "ip = data['ip']"}}}},
-  {{"id": "node-3", "type": "integration", "label": "Check AWS WAF", "integration_id": 42, "task": "list_blocked_ips_waf", "nodeNumber": 3}},
-  {{"id": "node-4", "type": "condition", "label": "Is IP Blocked?", "nodeNumber": 4, "config": {{"condition": {{"left": "{{{{ip}}}}", "operator": "eq", "right": "blocked"}}}}}},
-  {{"id": "node-5", "type": "integration", "label": "Send Alert Email", "integration_id": 48, "task": "send_email", "nodeNumber": 5}},
-  {{"id": "node-6", "type": "integration", "label": "Block IP", "integration_id": 42, "task": "unblock_ip_waf", "nodeNumber": 6}},
-  {{"id": "node-7", "type": "log", "label": "Log Action", "nodeNumber": 7}}
+  {{ "id": "node_1", "type": "webhook", "label": "Receive Alert", "nodeNumber": 1 }},
+  {{ "id": "node_2", "type": "script", "label": "Extract IP", "nodeNumber": 2, "params": {{ "script": "ip = data['body']['ip']" }} }},
+  {{ "id": "node_3", "type": "integration", "label": "Check AWS WAF", "integration_id": 5, "task": "list_blocked_ips_waf", "nodeNumber": 3, "params": {{ "ipset_name": "{{{{$node_1.data.body.ipset_name}}}}", "scope": "REGIONAL" }} }},
+  {{ "id": "node_4", "type": "condition", "label": "Is IP Blocked?", "nodeNumber": 4, "config": {{ "condition": {{ "left": "{{{{$node_3.data}}}}", "operator": "contains", "right": "1.2.3.4" }} }} }},
+  {{ "id": "node_5", "type": "integration", "label": "Send Alert Email", "integration_id": 48, "task": "send_email", "nodeNumber": 5 }},
+  {{ "id": "node_6", "type": "integration", "label": "Block IP", "integration_id": 5, "task": "unblock_ip_waf", "nodeNumber": 6 }},
+  {{ "id": "node_7", "type": "log", "label": "Log Action", "nodeNumber": 7 }}
 ]
 ```
 
 **Connections (CRITICAL - Study this pattern):**
 ```json
 [
-  {{"from": "node-1", "to": "node-2"}},           // Webhook → Script
-  {{"from": "node-2", "to": "node-3"}},           // Script → AWS Check
-  {{"from": "node-3", "to": "node-4"}},           // AWS Check → Condition
-  {{"from": "node-4", "sourceHandle": "true", "to": "node-5"}},   // If blocked → Email
-  {{"from": "node-4", "sourceHandle": "false", "to": "node-6"}},  // If not blocked → Block IP
-  {{"from": "node-5", "to": "node-7"}},           // Email → Log (merge point)
-  {{"from": "node-6", "to": "node-7"}}            // Block IP → Log (merge point)
+  {{ "from": "node_1", "to": "node_2" }},
+  {{ "from": "node_2", "to": "node_3" }},
+  {{ "from": "node_3", "to": "node_4" }},
+  {{ "from": "node_4", "sourceHandle": "true", "to": "node_5" }},
+  {{ "from": "node_4", "sourceHandle": "false", "to": "node_6" }},
+  {{ "from": "node_5", "to": "node_7" }},
+  {{ "from": "node_6", "to": "node_7" }}
 ]
 ```
 
@@ -167,40 +182,40 @@ This shows the CORRECT pattern for workflows with script extraction and conditio
 #### Sequential Flow (Default Pattern)
 Actions should flow in logical order: A → B → C → D
 ```json
-{{"from": "node-1", "to": "node-2"}},
-{{"from": "node-2", "to": "node-3"}},
-{{"from": "node-3", "to": "node-4"}}
+{{ "from": "node_1", "to": "node_2" }},
+{{ "from": "node_2", "to": "node_3" }},
+{{ "from": "node_3", "to": "node_4" }}
 ```
 
 #### Parallel Actions Pattern
 When multiple actions must happen, they should be **SEQUENTIAL**, not parallel:
 ```json
 // CORRECT - Sequential flow
-{{"from": "node-5", "to": "node-6"}},  // First action
-{{"from": "node-6", "to": "node-7"}},  // Second action
-{{"from": "node-7", "to": "node-8"}},  // Third action
-{{"from": "node-8", "to": "node-9"}}   // Continue to next step
+{{ "from": "node_5", "to": "node_6" }},
+{{ "from": "node_6", "to": "node_7" }},
+{{ "from": "node_7", "to": "node_8" }},
+{{ "from": "node_8", "to": "node_9" }}
 
 // WRONG - Parallel branches without convergence
-{{"from": "node-5", "to": "node-6"}},
-{{"from": "node-5", "to": "node-7"}},  // Dead end!
-{{"from": "node-5", "to": "node-8"}}   // Dead end!
+{{ "from": "node_5", "to": "node_6" }},
+{{ "from": "node_5", "to": "node_7" }},
+{{ "from": "node_5", "to": "node_8" }}
 ```
 
 #### Condition Node Pattern
 Condition branches **MUST** merge back together:
 ```json
-{{"from": "node-4", "sourceHandle": "true", "to": "node-5"}},
-{{"from": "node-4", "sourceHandle": "false", "to": "node-8"}},
+{{ "from": "node_4", "sourceHandle": "true", "to": "node_5" }},
+{{ "from": "node_4", "sourceHandle": "false", "to": "node_8" }},
 // True branch: sequential actions
-{{"from": "node-5", "to": "node-6"}},
-{{"from": "node-6", "to": "node-7"}},
-{{"from": "node-7", "to": "node-10"}},  // Merge here
+{{ "from": "node_5", "to": "node_6" }},
+{{ "from": "node_6", "to": "node_7" }},
+{{ "from": "node_7", "to": "node_10" }},
 // False branch: sequential actions
-{{"from": "node-8", "to": "node-9"}},
-{{"from": "node-9", "to": "node-10"}},  // Merge here
+{{ "from": "node_8", "to": "node_9" }},
+{{ "from": "node_9", "to": "node_10" }},
 // Continue after merge
-{{"from": "node-10", "to": "node-11"}}
+{{ "from": "node_10", "to": "node_11" }}
 ```
 
 #### Mandatory Rules
@@ -214,7 +229,7 @@ Condition branches **MUST** merge back together:
 
 Before generating the workflow, ensure:
 
-1. **Unique Node IDs**: Every node must have a unique ID (node-1, node-2, node-3, etc.). No duplicates allowed.
+1. **Unique Node IDs**: Every node must have a unique ID (`node_1`, `node_2`, etc.).
 
 2. **Valid Connections**: All 'from' and 'to' IDs in connections must reference existing node IDs in the nodes array.
 
@@ -384,17 +399,18 @@ INTEGRATION_REQUIRED_PARAMS = {
         "send_email": ["to", "subject", "body"],
         "send_bulk_email": ["recipients", "subject", "body"]
     },
-    "AWS": {
+    "Aws": {
         "list_blocked_ips_waf": ["ipset_name", "scope"],
+        "block_ip_waf": ["ipset_name", "ip", "scope"],
         "unblock_ip_waf": ["ipset_name", "ip", "scope"]
     },
     "Github": {
-        "create_issue": ["params"],
-        "list_projects": ["params"]
+        "create_issue": ["repo", "title", "body"],
+        "list_repos": ["repo_type"]
     },
     "Gitlab": {
-        "create_issue": ["params"],
-        "list_projects": ["params"]
+        "create_issue": ["project_path", "title", "body"],
+        "list_projects": ["organization"]
     }
 }
 
@@ -569,6 +585,178 @@ def auto_fix_connections(graph_data):
     # Update connections in workflow data
     workflow_data["connections"] = connections
 
+def normalize_node_ids(graph_data):
+    """Align node IDs with variable references (e.g. node_1 for $node_1)"""
+    if "workflows" not in graph_data or not graph_data["workflows"]:
+        return
+    
+    workflow = graph_data["workflows"][0]
+    workflow_data = workflow.get("workflow_data", {})
+    nodes = workflow_data.get("nodes", [])
+    connections = workflow_data.get("connections", [])
+    
+    if not nodes:
+        return
+    
+    # Create mapping from old IDs to sequential underscore-based IDs
+    id_mapping = {}
+    
+    for i, node in enumerate(nodes):
+        old_id = node["id"]
+        # Use nodeNumber if available, otherwise just sequential index
+        num = node.get("nodeNumber", i + 1)
+        new_id = f"node_{num}"
+        id_mapping[old_id] = new_id
+        
+        # Update node ID
+        node["id"] = new_id
+        print(f"DEBUG: Normalized ID {old_id} → {new_id}", flush=True)
+    
+    # Update all connection references
+    for conn in connections:
+        if conn.get("from") in id_mapping:
+            conn["from"] = id_mapping[conn["from"]]
+        if conn.get("to") in id_mapping:
+            conn["to"] = id_mapping[conn["to"]]
+
+def auto_fix_template_variables(graph_data):
+    """
+    Robustly fix common LLM mistakes in template variables:
+    - {{$node-1...}} -> {{$node_1...}}
+    - {$node_1...} -> {{$node_1...}}
+    - {node_1...} -> {{$node_1...}}
+    """
+    import json
+    import re
+    
+    # Dump to string for global search/replace
+    graph_str = json.dumps(graph_data)
+    
+    # 1. Fix single brace or missing dollar sign: {$node...}, {node...}, {{node...}}
+    # This covers many variations and normalizes to {{$node_...}}
+    def variable_fixer(match):
+        content = match.group(1).strip()
+        # Remove any existing dollar signs or 'node' prefixes to re-standardize
+        content = re.sub(r'^(\$)?node[-_]', '', content)
+        return f"{{{{$node_{content}}}}}"
+
+    # Search for anything inside braces that starts with node or $node
+    # This matches: {$node-1}, {{node_1}}, {$node_1}, {node-1}, etc.
+    # It normalizes everything to the required {{$node_1...}} format.
+    graph_str = re.sub(r'\{+\s?\$?node[-_](\d+[^}]*)\s?\}+', r'{{$node_\1}}', graph_str)
+    
+    # 2. Final pass: Ensure all $node- references use underscore (for stability)
+    graph_str = graph_str.replace("$node-", "$node_")
+    
+    try:
+        updated_data = json.loads(graph_str)
+        graph_data.clear()
+        graph_data.update(updated_data)
+    except Exception as e:
+        print(f"DEBUG: Error in auto_fix_template_variables: {e}", flush=True)
+
+def normalize_workflow_format(graph_data):
+    import datetime
+    
+    if "workflows" not in graph_data or not graph_data["workflows"]:
+        return
+    
+    # Run template variable fix first
+    auto_fix_template_variables(graph_data)
+    
+    # Update root exported_at to current time in exact format (ISO with microseconds)
+    # Manual shows: 2026-01-29T16:10:40.291474
+    graph_data["exported_at"] = datetime.datetime.now().isoformat()
+    
+    # Ensure workflow_comments exists at root
+    if "workflow_comments" not in graph_data:
+        graph_data["workflow_comments"] = {}
+    
+    workflow = graph_data["workflows"][0]
+    workflow_data = workflow.get("workflow_data", {})
+    nodes = workflow_data.get("nodes", [])
+    
+    for i, node in enumerate(nodes):
+        # Ensure all nodes have params field
+        if "params" not in node:
+            node["params"] = {}
+        
+        # Add default position if missing
+        if "position" not in node:
+            node["position"] = {
+                "x": 100 + (i * 250),  # Space nodes horizontally
+                "y": 100
+            }
+        
+        # Ensure continue_on_error and run_all_tasks are present
+        if "continue_on_error" not in node:
+            node["continue_on_error"] = False
+        if "run_all_tasks" not in node:
+            node["run_all_tasks"] = False
+        
+        if node.get("type") == "condition":
+            config = node.setdefault("config", {})
+            condition = config.setdefault("condition", {})
+            
+            if "right" in condition:
+                right_val = str(condition["right"])
+                # If not already wrapped in literal quotes, wrap it
+                # The manual JSON shows: "right": "\"2\""
+                if not (right_val.startswith('"') and right_val.endswith('"')):
+                    condition["right"] = f'"{right_val}"'
+                else:
+                    condition["right"] = right_val
+                print(f"DEBUG: Normalized condition right value to {condition['right']}", flush=True)
+        
+        # Fix HTTP nodes: ensure all required config fields
+        if node.get("type") == "http":
+            config = node.setdefault("config", {})
+            config.setdefault("headers", {})
+            config.setdefault("body", {})
+            config.setdefault("query_params", {})
+            config.setdefault("timeout", 30)
+        
+        # Fix webhook nodes: ensure config
+        if node.get("type") == "webhook":
+            if "config" not in node:
+                node["config"] = {}
+            if "accept_json_only" not in node["config"]:
+                node["config"]["accept_json_only"] = True
+        
+        # Fix log nodes: ensure config and log_level
+        if node.get("type") == "log":
+            if "config" not in node:
+                node["config"] = {}
+            if "log_level" not in node["config"]:
+                node["config"]["log_level"] = "info"
+        
+        # Fix integration nodes: ensure filter, stringified timeout, and GitLab specific fields
+        if node.get("type") == "integration":
+            if "task_type_filter" not in node:
+                node["task_type_filter"] = "action"
+            
+            p = node.get("params", {})
+            # Ensure timeout_seconds is a string if present
+            if "timeout_seconds" in p:
+                p["timeout_seconds"] = str(p["timeout_seconds"])
+            
+            # Special bypass for GitLab based on manual working JSON
+            if node.get("integration_type_name") == "Gitlab":
+                if "params" not in p:
+                    p["params"] = ""
+    
+    # Fix connections from condition nodes: add condition object
+    connections = workflow_data.get("connections", [])
+    for conn in connections:
+        # If connection has sourceHandle (true/false) but no condition object, add it
+        if "sourceHandle" in conn and "condition" not in conn:
+            source_handle = conn["sourceHandle"]
+            conn["condition"] = {
+                "value": source_handle,
+                "type": "expression"
+            }
+            print(f"DEBUG: Added condition object to connection: {conn['from']} → {conn['to']} ({source_handle})", flush=True)
+
 def planner_node(state: AgentState):
     request = state["messages"][-1].content
     
@@ -629,9 +817,13 @@ def planner_node(state: AgentState):
         # IDs match public.integrations table in workflow_db.sql
         INTEGRATION_MAP = {
             "email": {"id": 48, "type": "Email", "default_task": "send_email", "display": "Send Email"},
-            "aws": {"id": 42, "type": "AWS", "default_task": "list_blocked_ips_waf", "display": "List Blocked IPs"},
-            "github": {"id": 49, "type": "Github", "default_task": "create_issue", "display": "Create Issue"},
-            "gitlab": {"id": 45, "type": "Gitlab", "default_task": "create_issue", "display": "Create Issue"}
+            "aws": {"id": 5, "type": "Aws", "default_task": "list_blocked_ips_waf", "display": "List Blocked Ips Waf"},
+            "github": {"id": 50, "type": "Github", "default_task": "create_issue", "display": "Create Issue"},
+            "gitlab": {"id": 53, "type": "Gitlab", "default_task": "create_issue", "display": "Create Issue"},
+            "azure": {"id": 55, "type": "Azure", "default_task": "check_azure_accelerated_networking_disabled", "display": "Check Accelerated Networking"},
+            "gcp": {"id": 54, "type": "Gcp", "default_task": "check_gcp_website_hosting_insecure", "display": "Check Insecure Hosting"},
+            "sarang-github": {"id": 50, "type": "Github", "default_task": "create_issue", "display": "Create Issue"},
+            "sarang-gitlabs": {"id": 53, "type": "Gitlab", "default_task": "create_issue", "display": "Create Issue"}
         }
 
         if "workflows" in graph_data:
@@ -662,9 +854,8 @@ def planner_node(state: AgentState):
                             if "params" not in node:
                                 node["params"] = {}
                             
-                            # Inject mandatory fields as per user request
-                            node["params"]["timeout_seconds"] = 300
-                            node["params"]["integration_types"] = match["type"]
+                            # Do not inject mandatory fields here if they cause conflicts
+                            # We let the AI manage the parameters directly
                         else:
                             # Fallback to LOG node if it's an unrecognized integration
                             original_label = node.get('label', 'Missing Integration')
@@ -680,6 +871,14 @@ def planner_node(state: AgentState):
         # --- AUTO-FIX: Repair common connection errors ---
         print("DEBUG: Running auto-fix for connection errors...", flush=True)
         auto_fix_connections(graph_data)
+        
+        # --- POST-PROCESSING: Normalize node IDs to match variables ---
+        print("DEBUG: Normalizing node IDs...", flush=True)
+        normalize_node_ids(graph_data)
+        
+        # --- POST-PROCESSING: Normalize workflow format ---
+        print("DEBUG: Normalizing workflow format...", flush=True)
+        normalize_workflow_format(graph_data)
 
         # --- VALIDATION PHASE 2: Comprehensive Workflow Validation ---
         all_validation_errors = []
