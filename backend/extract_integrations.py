@@ -75,7 +75,7 @@ def parse_sql_dump(file_path):
     return registry
 
 if __name__ == "__main__":
-    sql_path = "/Users/sarangmehta/workflow_agentic/data_dump/workflow_db.sql"
+    sql_path = "/Users/sarangmehta/Desktop/workflow_agentic/data_dump/workflow_db.sql"
     if os.path.exists(sql_path):
         reg = parse_sql_dump(sql_path)
         # Sort and print a readable summary

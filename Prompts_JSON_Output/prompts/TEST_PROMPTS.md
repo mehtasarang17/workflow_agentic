@@ -47,7 +47,7 @@ Create a workflow that checks if Azure accelerated networking is disabled using 
 
 ### 7. **GCP - Bucket Security Check**
 ```
-Create a workflow that checks for public bucket policy access in GCP using integration ID 54 and sends an email report to mehtasarang17@gmail.com.
+Create a workflow that checks for public bucket policy access in GCP and sends an email report to mehtasarang17@gmail.com and also creates a gitlab issue.
 ```
 
 ### 8. **GitLab - Task Log**
@@ -81,7 +81,7 @@ Build a workflow that receives a webhook with "ip_to_block" and "target_ipset". 
 
 ### 13. **Azure - Admin Privilege Check**
 ```
-Create a workflow that checks for Azure full admin privileges (ID 55). If found, create a Github issue (ID 50) and log the security finding.
+Create a workflow that checks for Azure full admin privileges. If found, create a Github issue (ID 50) and log the security finding else send email to mehtasarang17@gmail.com.
 ```
 
 ### 14. **GCP - Insecure Hosting Alert**

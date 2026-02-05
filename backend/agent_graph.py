@@ -70,15 +70,17 @@ The response must be a single JSON object with this exact structure:
 1. **LABEL**: EVERY node MUST have a descriptive `label` string (e.g., "Check CPU", "Clear Cache"). If missing, it will show as "Untitled".
 ### INTEGRATION REGISTRY (DATA-AWARE)
 You MUST only use integrations that are available in the database. 
-If an integration is not in this list, create a `log` node with message: "No integrations available for this requirement.".
+If an integration is not in this list (e.g., Weather API, CoinGecko), use an `http` node instead of an integration node.
+Only create a `log` node if the request is impossible to fulfill.
 
 | Service | integration_id | type_name | Available Tasks & Mandatory Params |
 | :--- | :--- | :--- | :--- |
-| **AWS** | 5 | `Aws` | `check_iam_full_admin_privileges` (params), `list_blocked_ips_waf` (ipset_name, scope) |
-| **Github** | 50 | `Github` | `create_issue` (repo, title, body), `list_repos` (repo_type, sort) |
-| **Gitlab** | 53 | `Gitlab` | `create_issue` (project_path, title, body), `list_projects` (organization) |
-| **Azure** | 55 | `Azure` | `check_azure_accelerated_networking_disabled` (params), `check_azure_full_admin_privileges` (params) |
-| **Gcp** | 54 | `Gcp` | `check_gcp_website_hosting_insecure` (params), `check_gcp_bucket_policy_public_access` (params) |
+| **AWS** | 5 | `Aws` | **S3:** `check_s3_bucket_policy_public_access`, `check_s3_bucket_acl_public_read`, `check_s3_bucket_acl_public_write`, `check_s3_public_access_block_disabled`, `check_s3_versioning_disabled`, `check_s3_encryption_disabled`, `check_s3_server_side_encryption_enabled`, `check_s3_logging_disabled`, `check_s3_lifecycle_policies_missing`, `check_s3_mfa_delete_disabled` | **ACM:** `check_acm_autorenewal_not_enabled`, `check_acm_certificate_export_not_monitored`, `check_acm_certificates_near_expiration`, `check_acm_certificate_transparency_disabled` | **CloudTrail:** `check_cloudtrail_analysis_not_automated`, `check_cloudtrail_api_alarms_missing`, `check_cloudtrail_bucket_access_logging_disabled`, `check_cloudtrail_bucket_mfa_delete_disabled`, `check_cloudtrail_bucket_policy_changes_not_monitored`, `check_cloudtrail_bucket_policy_permissive`, `check_cloudtrail_cloudwatch_integration_missing`, `check_cloudtrail_cmk_deletion_not_alerted`, `check_cloudtrail_data_events_not_logged`, `check_cloudtrail_digest_files_not_generated`, `check_cloudtrail_history_not_exported`, `check_cloudtrail_iam_changes_not_monitored`, `check_cloudtrail_insights_disabled`, `check_cloudtrail_lambda_selectors_missing`, `check_cloudtrail_lifecycle_policy_missing`, `check_cloudtrail_log_validation_disabled`, `check_cloudtrail_logging_stopped`, `check_cloudtrail_logs_not_replicated`, `check_cloudtrail_management_events_not_logged`, `check_cloudtrail_multiregion_trail_missing`, `check_cloudtrail_nacl_changes_not_monitored`, `check_cloudtrail_no_kms_encryption`, `check_cloudtrail_not_enabled_all_regions`, `check_cloudtrail_not_monitored_for_suspicious_activity`, `check_cloudtrail_org_trail_disabled`, `check_cloudtrail_retention_too_short`, `check_cloudtrail_root_usage_not_alerted`, `check_cloudtrail_s3_bucket_insecure`, `check_cloudtrail_s3_selectors_missing`, `check_cloudtrail_sg_changes_not_monitored`, `check_cloudtrail_signin_failures_not_monitored`, `check_cloudtrail_sns_notifications_missing`, `check_cloudtrail_trail_changes_not_monitored`, `check_cloudtrail_unauthorized_calls_not_detected`, `check_cloudtrail_vpc_changes_not_monitored`, `check_kms_cloudtrail_not_enabled` | **IAM:** `check_iam_full_admin_privileges` | **KMS:** `check_kms_rotation_disabled`, `check_kms_public_access_allowed`, `check_kms_material_expiration_unmanaged`, `check_kms_multi_region_not_used`, `check_kms_deletion_window_incorrect` | **Lambda:** `check_lambda_deprecated_runtime`, `check_lambda_public_resource_policy`, `check_lambda_tracing_disabled`, `check_lambda_vpc_not_used`, `check_lambda_hardcoded_secrets` | **RDS:** `check_rds_activity_streams_disabled`, `check_rds_audit_logging_disabled`, `check_rds_autoupgrade_disabled`, `check_rds_backup_retention_7_days`, `check_rds_deletion_protection_disabled`, `check_rds_no_encryption_at_rest`, `check_rds_publicly_accessible`, `check_rds_storage_autoscaling_disabled`, `check_rds_outdated_engine_version` | **WAF:** `check_waf_bot_control_not_enabled`, `check_waf_logging_not_enabled`, `check_waf_rate_limiting_not_configured`, `check_waf_managed_rules_not_used` (all take `params`) |
+| **Github** | 15 | `Github` | `check_github_two_factor_authentication_not_enforced_organization_wide` (params), `create_issue` (params), `list_repos` (params) |
+| **Gitlab** | 45 | `Gitlab` | `check_gitlab_access_tokens_without_expiry` (params), `check_gitlab_2fa_not_enforced` (params), `create_issue` (params), `list_projects` (params) |
+| **Azure** | 55 | `Azure` | `check_azure_public_ip_addresses`, `check_azure_sql_injection_protection_missing`, `check_azure_waf_not_enabled`, `check_azure_storage_class_analysis_disabled`, `check_azure_users_without_multifactor_authentication`, `check_azure_ssh_from_00000`, `check_azure_unencrypted_uploads_allowed`, `check_azure_vnet_peering_not_secured` |
+| **Gcp** | 54 | `Gcp` | **IAM:** `check_gcp_users_without_multi_factor_authentication`, `check_gcp_overly_permissive_roles`. **Storage:** `check_gcp_bucket_policy_public_access`, `check_gcp_public_access_allowed`. **Compute:** `check_gcp_public_ip_addresses`. **SQL:** `check_gcp_retention_too_short`. **Network:** `check_gcp_vpc_flow_logs_disabled`. **KMS:** `check_gcp_rotation_disabled`. **Logging:** `check_gcp_logging_stopped` |
+| **Email** | 10 | `Email` | `send_email` (to, subject, body) |
 
 
 ### NODE TYPE SPECIFICATIONS
@@ -88,18 +90,25 @@ If an integration is not in this list, create a `log` node with message: "No int
 | `condition` | `config`: {{"condition": {{"format": "simple", "type": "simple", "left": "{{{{variable}}}}", "operator": "eq/ne/gt/lt", "right": "value"}}, "true_nodes": [], "false_nodes": []}} |
 | `integration` | **ROOT**: `integration_id`, `task`, `task_display_name`, `integration_type_name`, `continue_on_error`: false, `run_all_tasks`: false. <br> **PARAMS**: contains task parameters, `timeout_seconds`: 300, AND `integration_types`: "Same as integration_type_name" |
 | `log` | `config`: {{"message": "...", "log_level": "info/warning/error"}} |
-| `script` | `params`: {{"script": "python code here"}} |
 | `http` | `config`: {{"url": "...", "method": "GET/POST/PUT/DELETE", "body": {{}}}} |
 
-**CRITICAL - AVOID SCRIPT NODES**: Do NOT use script nodes for simple data extraction. 
-Instead, use template variables directly: `{{$node_N.data.field}}`.
+### AMBIGUITY RESOLUTION & DEFAULTS
+1. **DEFAULT PROVIDER**: If the user does not specify a cloud provider (AWS, Azure, GCP), **DEFAULT TO AWS**.
+2. **WAF**: "WAF" refers to **AWS WAF** (`check_waf_...`) unless Azure or GCP is explicitly mentioned.
+3. **LOGGING**: Generic "logging" checks usually refer to **AWS CloudTrail** or **AWS WAF** unless specified otherwise.
+4. **S3 / BUCKETS**: Generic "S3" or "Bucket" checks refer to **`check_s3_bucket_policy_public_access`**.
+5. **WAF BOT CONTROL**: MUST use task `check_waf_bot_control_not_enabled`.
+
+### CRITICAL - MANDATORY RESTRICTION: FORBIDDEN NODES
+1. **SCRIPT NODES**: Do NOT generate `script` nodes under any circumstances. They are NOT supported.
+2. For data processing, use template variables directly: `{{$node_N.data.field}}`.
 
 ### EXAMPLE INTEGRATION (Strict Alignment)
 {{
   "id": "node_2",
   "type": "integration",
   "label": "Send Email",
-  "integration_id": 48,
+  "integration_id": 10,
   "task": "send_email",
   "task_display_name": "Send Email",
   "integration_type_name": "Email",
@@ -138,42 +147,42 @@ Instead, use template variables directly: `{{$node_N.data.field}}`.
 }}
 
 ### VARIABLE SUBSTITUTION & REFERENCING (MANDATORY FORMAT)
-1. **Format**: ALWAYS use `{{$node_N.data.body.field}}` for Webhooks and HTTP. For integrations, use `{{$node_N.data.field}}`.
-2. **Double Braces**: Use double braces `{{ ... }}`.
+1. **Format**: ALWAYS use `{{{{$node_N.data.body.field}}}}` for Webhooks and HTTP. For integrations, use `{{{{$node_N.data}}}}` for full response or `{{{{$node_N.data.field}}}}` for specific fields.
+2. **Double Braces**: Use double braces `{{{{ ... }}}}`. This is MANDATORY - template variables MUST be wrapped in curly braces!
 3. **Reference by Node Number**: `N` is the `nodeNumber` of the source node.
-4. **Webhook/HTTP Rule**: Data is always nested in `body`. Use `{{$node_1.data.body.your_field}}`.
-5. **Node IDs**: The system will automatically align `id` with `node_N`.
+4. **Webhook/HTTP Rule**: Data is accessible via `{{{{$node_1.data}}}}`.
+5. **Integration Rule**: Use `{{{{$node_2.data}}}}` for full response.
+6. **Node IDs**: The system will automatically align `id` with `node_N`.
 
-### COMPLETE WORKFLOW EXAMPLE (Script → Condition → Branches)
-This shows the CORRECT pattern for workflows with script extraction and conditions:
+### CRITICAL SYNTAX RULES - TEMPLATE VARIABLES MUST USE CURLY BRACES
+**ALWAYS wrap template variables in {{{{ }}}}:**
+- ✅ CORRECT: `{{{{$node_2.data}}}}`  (full integration response)
+- ✅ CORRECT: `{{{{$node_1.data}}}}`  (full webhook/HTTP response)
+- ❌ WRONG: `node_2.data` (missing {{{{ }}}})
+- ❌ WRONG: `$node_2.data` (missing {{{{ }}}})
+- ❌ WRONG: `{{{{$node_1.data.body.temperature}}}}` (AVOID specific fields - use full object!)
 
-**Nodes:**
-```json
-[
-  {{ "id": "node_1", "type": "webhook", "label": "Receive Alert", "nodeNumber": 1 }},
-  {{ "id": "node_2", "type": "script", "label": "Extract IP", "nodeNumber": 2, "params": {{ "script": "ip = data['body']['ip']" }} }},
-  {{ "id": "node_3", "type": "integration", "label": "Check AWS WAF", "integration_id": 5, "task": "list_blocked_ips_waf", "nodeNumber": 3, "params": {{ "ipset_name": "{{{{$node_1.data.body.ipset_name}}}}", "scope": "REGIONAL" }} }},
-  {{ "id": "node_4", "type": "condition", "label": "Is IP Blocked?", "nodeNumber": 4, "config": {{ "condition": {{ "left": "{{{{$node_3.data}}}}", "operator": "contains", "right": "1.2.3.4" }} }} }},
-  {{ "id": "node_5", "type": "integration", "label": "Send Alert Email", "integration_id": 48, "task": "send_email", "nodeNumber": 5 }},
-  {{ "id": "node_6", "type": "integration", "label": "Block IP", "integration_id": 5, "task": "unblock_ip_waf", "nodeNumber": 6 }},
-  {{ "id": "node_7", "type": "log", "label": "Log Action", "nodeNumber": 7 }}
-]
+### CRITICAL - LOGGING RULE
+**For LOG nodes, ALWAYS log the full data object:**
+- ✅ `{{{{$node_N.data}}}}`
+- ❌ Do NOT try to access specific fields like `{{{{$node_N.data.body}}}}` or `{{{{$node_N.data.items}}}}` unless you are 100% sure of the structure. Safest is FULL DATA.
+
+### CRITICAL EXAMPLES - DATA ACCESS
+
+**CORRECT - Universal Logging Pattern:**
+```
+Log full response: {{{{$node_1.data}}}}  // ALWAYS USE THIS
 ```
 
-**Connections (CRITICAL - Study this pattern):**
-```json
-[
-  {{ "from": "node_1", "to": "node_2" }},
-  {{ "from": "node_2", "to": "node_3" }},
-  {{ "from": "node_3", "to": "node_4" }},
-  {{ "from": "node_4", "sourceHandle": "true", "to": "node_5" }},
-  {{ "from": "node_4", "sourceHandle": "false", "to": "node_6" }},
-  {{ "from": "node_5", "to": "node_7" }},
-  {{ "from": "node_6", "to": "node_7" }}
-]
+**WRONG - Guessing Fields:**
+```
+❌ {{{{$node_1.data.body.check_name}}}}  // INCORRECT - do not guess path
+❌ {{{{$node_1.data.repositories}}}} // INCORRECT - do not guess path
+❌ `Repositories: node_1.data` // INCORRECT - missing {{{{ }}}}!
 ```
 
-**Key Pattern**: webhook → script → integration → **condition** → (true branch + false branch) → **merge to common node**
+
+**Key Pattern**: webhook → integration → **condition** → (true branch + false branch) → **merge to common node**
 
 ### CONNECTION RULES (CRITICAL - READ CAREFULLY)
 
@@ -202,11 +211,20 @@ When multiple actions must happen, they should be **SEQUENTIAL**, not parallel:
 {{ "from": "node_5", "to": "node_8" }}
 ```
 
-#### Condition Node Pattern
-Condition branches **MUST** merge back together:
+4. **MERGE / FAN-IN (MANDATORY)**:
+   - When you have multiple parallel branches (e.g., checking AWS, Azure, GCP simultaneously), they **MUST** all connect to a single `log` node (serving as a **Merge Node/Sync Point**) *before* proceeding to a `condition` node.
+   - **DO NOT** connect multiple parallel nodes directly to a `condition` node unless you are sure the condition handles asynchronous inputs (which it often doesn't).
+   - **Pattern**: `[Branch A] -> [Merge Log]`, `[Branch B] -> [Merge Log]`, `[Merge Log] -> [Condition]`.
+   - The Merge Log should summarize findings, e.g., `message: "Scans complete. AWS: {{...}}, Azure: {{...}}"`
+
+#### Condition Node Pattern (CRITICAL)
+Condition branches **MUST** connect to valid nodes. You CANNOT have a "dead end" branch unless it connects to a Log node.
+**Every condition must have BOTH a 'true' and 'false' connection.**
 ```json
 {{ "from": "node_4", "sourceHandle": "true", "to": "node_5" }},
-{{ "from": "node_4", "sourceHandle": "false", "to": "node_8" }},
+{{ "from": "node_4", "sourceHandle": "false", "to": "node_6" }}
+```
+**Avoid Orphans:** Ensure `node_5` and `node_6` are connected to the next step or are valid end-state Log nodes.
 // True branch: sequential actions
 {{ "from": "node_5", "to": "node_6" }},
 {{ "from": "node_6", "to": "node_7" }},
@@ -218,12 +236,12 @@ Condition branches **MUST** merge back together:
 {{ "from": "node_10", "to": "node_11" }}
 ```
 
-#### Mandatory Rules
-1. **Start node** (webhook/trigger): Must connect to exactly 1 node
-2. **Condition nodes**: Must have exactly 2 outgoing connections (sourceHandle: "true" and "false")
-3. **All other nodes**: Must have at least 1 outgoing connection (except final log/email nodes)
-4. **No orphans**: Every node except start must have at least 1 incoming connection
-5. **Branch convergence**: All condition branches must eventually merge to a common node
+### MANDATORY: CHAIN LINKING (NO ORPHANS)
+**YOU MUST EXPLICITLY CONNECT EVERY NODE.**
+1.  **Iterate through your nodes**: For every Node N, there MUST be a connection `{{ "from": "id_N", "to": "id_N+1" }}`.
+2.  **Verify Inputs**: Check that `node_3` matches the `to` field of a connection from `node_2`.
+3.  **No Islands**: If a node exists in the `nodes` array, it MUST appear in the `connections` array.
+4.  **Auto-Correction**: If you create a node but forget to connect it, the workflow is INVALID.
 
 ### CRITICAL VALIDATION RULES (MUST FOLLOW)
 
@@ -402,15 +420,211 @@ INTEGRATION_REQUIRED_PARAMS = {
     "Aws": {
         "list_blocked_ips_waf": ["ipset_name", "scope"],
         "block_ip_waf": ["ipset_name", "ip", "scope"],
-        "unblock_ip_waf": ["ipset_name", "ip", "scope"]
+        "unblock_ip_waf": ["ipset_name", "ip", "scope"],
+        "check_acm_autorenewal_not_enabled": ["params"],
+        "check_acm_certificate_export_not_monitored": ["params"],
+        "check_acm_certificates_near_expiration": ["params"],
+        "check_acm_certificate_transparency_disabled": ["params"],
+        "check_cloudtrail_analysis_not_automated": ["params"],
+        "check_cloudtrail_api_alarms_missing": ["params"],
+        "check_cloudtrail_bucket_access_logging_disabled": ["params"],
+        "check_cloudtrail_bucket_mfa_delete_disabled": ["params"],
+        "check_cloudtrail_bucket_policy_changes_not_monitored": ["params"],
+        "check_cloudtrail_bucket_policy_permissive": ["params"],
+        "check_cloudtrail_cloudwatch_integration_missing": ["params"],
+        "check_cloudtrail_cmk_deletion_not_alerted": ["params"],
+        "check_cloudtrail_data_events_not_logged": ["params"],
+        "check_cloudtrail_digest_files_not_generated": ["params"],
+        "check_cloudtrail_history_not_exported": ["params"],
+        "check_cloudtrail_iam_changes_not_monitored": ["params"],
+        "check_cloudtrail_insights_disabled": ["params"],
+        "check_cloudtrail_lambda_selectors_missing": ["params"],
+        "check_cloudtrail_lifecycle_policy_missing": ["params"],
+        "check_cloudtrail_log_validation_disabled": ["params"],
+        "check_cloudtrail_logging_stopped": ["params"],
+        "check_cloudtrail_logs_not_replicated": ["params"],
+        "check_cloudtrail_management_events_not_logged": ["params"],
+        "check_cloudtrail_multiregion_trail_missing": ["params"],
+        "check_cloudtrail_nacl_changes_not_monitored": ["params"],
+        "check_cloudtrail_no_kms_encryption": ["params"],
+        "check_cloudtrail_not_enabled_all_regions": ["params"],
+        "check_cloudtrail_not_monitored_for_suspicious_activity": ["params"],
+        "check_cloudtrail_org_trail_disabled": ["params"],
+        "check_cloudtrail_retention_too_short": ["params"],
+        "check_cloudtrail_root_usage_not_alerted": ["params"],
+        "check_cloudtrail_s3_bucket_insecure": ["params"],
+        "check_cloudtrail_s3_selectors_missing": ["params"],
+        "check_cloudtrail_sg_changes_not_monitored": ["params"],
+        "check_cloudtrail_signin_failures_not_monitored": ["params"],
+        "check_cloudtrail_sns_notifications_missing": ["params"],
+        "check_cloudtrail_trail_changes_not_monitored": ["params"],
+        "check_cloudtrail_unauthorized_calls_not_detected": ["params"],
+        "check_cloudtrail_vpc_changes_not_monitored": ["params"],
+        "check_iam_full_admin_privileges": ["params"],
+        "check_kms_admins_not_separated": ["params"],
+        "check_kms_alias_missing": ["params"],
+        "check_kms_aws_managed_keys_used": ["params"],
+        "check_kms_cloudtrail_not_enabled": ["params"],
+        "check_kms_compliance_not_validated": ["params"],
+        "check_kms_conditions_not_restrictive": ["params"],
+        "check_kms_crossaccount_not_restricted": ["params"],
+        "check_kms_deletion_window_incorrect": ["params"],
+        "check_kms_dr_plan_missing": ["params"],
+        "check_kms_external_material_no_controls": ["params"],
+        "check_kms_grants_without_expiration": ["params"],
+        "check_kms_imported_material_no_backup": ["params"],
+        "check_kms_key_specs_incorrect": ["params"],
+        "check_kms_material_expiration_unmanaged": ["params"],
+        "check_kms_metrics_not_configured": ["params"],
+        "check_kms_multiregion_not_used": ["params"],
+        "check_kms_no_rate_limiting": ["params"],
+        "check_kms_not_least_privilege": ["params"],
+        "check_kms_pending_deletion_not_reviewed": ["params"],
+        "check_kms_permissive_policies": ["params"],
+        "check_kms_public_access_allowed": ["params"],
+        "check_kms_resource_tags_missing": ["params"],
+        "check_kms_rotation_disabled": ["params"],
+        "check_kms_tags_missing": ["params"],
+        "check_kms_unauthorized_vpc_access": ["params"],
+        "check_kms_usage_not_analyzed": ["params"],
+        "check_kms_usage_not_monitored": ["params"],
+        "check_kms_viaservice_missing": ["params"],
+        "check_kms_wildcard_principals": ["params"],
+        "check_kms_wrong_key_type": ["params"],
+        "check_rds_activity_streams_disabled": ["params"],
+        "check_rds_audit_logging_disabled": ["params"],
+        "check_rds_autoupgrade_disabled": ["params"],
+        "check_rds_backup_retention_7_days": ["params"],
+        "check_rds_bluegreen_not_utilized": ["params"],
+        "check_rds_certificate_rotation_unmanaged": ["params"],
+        "check_rds_cloudwatch_logs_not_exported": ["params"],
+        "check_rds_cluster_endpoints_misconfigured": ["params"],
+        "check_rds_crossregion_replication_disabled": ["params"],
+        "check_rds_default_master_username": ["params"],
+        "check_rds_default_parameter_groups": ["params"],
+        "check_rds_deletion_protection_disabled": ["params"],
+        "check_rds_enhanced_monitoring_disabled": ["params"],
+        "check_rds_error_logs_not_monitored": ["params"],
+        "check_rds_event_subscriptions_missing": ["params"],
+        "check_rds_global_databases_not_used": ["params"],
+        "check_rds_iam_auth_disabled": ["params"],
+        "check_rds_insufficient_iops": ["params"],
+        "check_rds_maintenance_in_business_hours": ["params"],
+        "check_rds_minor_upgrades_disabled": ["params"],
+        "check_rds_multiaz_disabled": ["params"],
+        "check_rds_no_automated_backups": ["params"],
+        "check_rds_no_encryption_at_rest": ["params"],
+        "check_rds_not_in_backup_plan": ["params"],
+        "check_rds_option_groups_misconfigured": ["params"],
+        "check_rds_outdated_engine_version": ["params"],
+        "check_rds_outdated_tls_allowed": ["params"],
+        "check_rds_performance_insights_disabled": ["params"],
+        "check_rds_permissive_security_groups": ["params"],
+        "check_rds_provisioned_iops_not_used": ["params"],
+        "check_rds_public_snapshots": ["params"],
+        "check_rds_public_subnet_deployment": ["params"],
+        "check_rds_publicly_accessible": ["params"],
+        "check_rds_query_logs_not_exported": ["params"],
+        "check_rds_rds_proxy_not_used": ["params"],
+        "check_rds_read_replicas_missing": ["params"],
+        "check_rds_secrets_manager_missing": ["params"],
+        "check_rds_slow_query_logs_disabled": ["params"],
+        "check_rds_snapshot_retention_missing": ["params"],
+        "check_rds_snapshots_not_encrypted": ["params"],
+        "check_rds_ssltls_not_enforced": ["params"],
+        "check_rds_storage_autoscaling_disabled": ["params"],
+        "check_rds_tagging_inadequate": ["params"],
+        "check_rds_unused_storage": ["params"],
+        "check_rds_weak_authentication": ["params"],
+        "check_lambda_alarms_not_configured": ["params"],
+        "check_lambda_aliases_missing": ["params"],
+        "check_lambda_arm_not_used": ["params"],
+        "check_lambda_code_signing_missing": ["params"],
+        "check_lambda_compliance_scanning_missing": ["params"],
+        "check_lambda_crossaccount_not_controlled": ["params"],
+        "check_lambda_deprecated_runtime": ["params"],
+        "check_lambda_dlq_not_configured": ["params"],
+        "check_lambda_dr_strategy_missing": ["params"],
+        "check_lambda_efs_integration_missing": ["params"],
+        "check_lambda_error_handling_missing": ["params"],
+        "check_lambda_event_mappings_insecure": ["params"],
+        "check_lambda_event_sources_unrestricted": ["params"],
+        "check_lambda_hardcoded_secrets": ["params"],
+        "check_lambda_layers_not_used": ["params"],
+        "check_lambda_log_retention_not_set": ["params"],
+        "check_lambda_memory_not_optimized": ["params"],
+        "check_lambda_outdated_runtime": ["params"],
+        "check_lambda_overly_permissive_roles": ["params"],
+        "check_lambda_packages_not_scanned": ["params"],
+        "check_lambda_plaintext_env_vars": ["params"],
+        "check_lambda_provisioned_concurrency_missing": ["params"],
+        "check_lambda_public_resource_policy": ["params"],
+        "check_lambda_reserved_capacity_wrong": ["params"],
+        "check_lambda_reserved_concurrency_missing": ["params"],
+        "check_lambda_secrets_manager_not_used": ["params"],
+        "check_lambda_snapstart_not_used": ["params"],
+        "check_lambda_tags_missing": ["params"],
+        "check_lambda_timeout_too_high": ["params"],
+        "check_lambda_tracing_disabled": ["params"],
+        "check_lambda_unused_artifacts": ["params"],
+        "check_lambda_versioning_missing": ["params"],
+        "check_lambda_vpc_cold_starts": ["params"],
+        "check_lambda_vpc_not_used": ["params"],
+        "check_lambda_xray_missing": ["params"],
+        "check_waf_bot_control_not_enabled": [],
+        "check_s3_bucket_policy_public_access": [],
+        "check_s3_bucket_acl_public_read": [],
+        "check_s3_bucket_acl_public_write": [],
+        "check_s3_public_access_block_disabled": [],
+        "check_s3_versioning_disabled": [],
+        "check_s3_encryption_disabled": [],
+        "check_s3_server_side_encryption_enabled": [],
+        "check_s3_logging_disabled": [],
+        "check_s3_lifecycle_policies_missing": [],
+        "check_s3_mfa_delete_disabled": [],
+        "check_waf_logging_not_enabled": ["params"],
+        "check_waf_rate_limiting_not_configured": ["params"],
+        "check_waf_managed_rules_not_used": ["params"]
     },
     "Github": {
         "create_issue": ["repo", "title", "body"],
         "list_repos": ["repo_type"]
     },
     "Gitlab": {
-        "create_issue": ["project_path", "title", "body"],
-        "list_projects": ["organization"]
+        "check_gitlab_access_tokens_without_expiry": ["params"],
+        "check_gitlab_2fa_not_enforced": ["params"],
+        "create_issue": ["params"],
+        "list_projects": ["params"]
+    },
+    "Github": {
+        "check_github_two_factor_authentication_not_enforced_organization_wide": ["params"],
+        "create_issue": ["params"],
+        "list_repos": ["params"]
+    },
+    "Gcp": {
+        "check_gcp_website_hosting_insecure": [],
+        "check_gcp_bucket_policy_public_access": [],
+        "check_gcp_users_without_multi_factor_authentication": [],
+        "check_gcp_overly_permissive_roles": [],
+        "check_gcp_public_access_allowed": [],
+        "check_gcp_public_ip_addresses": [],
+        "check_gcp_retention_too_short": [],
+        "check_gcp_vpc_flow_logs_disabled": [],
+        "check_gcp_rotation_disabled": [],
+        "check_gcp_logging_stopped": []
+    },
+    "Azure": {
+        "check_azure_public_ip_addresses": [],
+        "check_azure_sql_injection_protection_missing": [],
+        "check_azure_waf_not_enabled": [],
+        "check_azure_storage_class_analysis_disabled": [],
+        "check_azure_users_without_multifactor_authentication": [],
+        "check_azure_ssh_from_00000": [],
+        "check_azure_unencrypted_uploads_allowed": [],
+        "check_azure_vnet_peering_not_secured": []
+    },
+    "Email": {
+        "send_email": ["to", "subject", "body"]
     }
 }
 
@@ -500,6 +714,36 @@ def detect_cycles(nodes, connections):
     
     return []
 
+def sanitize_connections(graph_data):
+    """
+    Remove invalid connections where non-condition nodes attempt to branch.
+    Integration nodes cannot have 'sourceHandle' (true/false) connections.
+    """
+    if "workflows" not in graph_data or not graph_data["workflows"]:
+        return
+    
+    workflow = graph_data["workflows"][0]
+    workflow_data = workflow.get("workflow_data", {})
+    nodes = workflow_data.get("nodes", [])
+    connections = workflow_data.get("connections", [])
+    
+    node_map = {n["id"]: n for n in nodes}
+    new_connections = []
+    
+    for conn in connections:
+        src_id = conn.get("from")
+        src_node = node_map.get(src_id)
+        
+        if src_node:
+            # Check for invalid branching: Source has handle but is NOT a condition node
+            if "sourceHandle" in conn and src_node.get("type") != "condition":
+                print(f"SANITIZER: Removing invalid branch from non-condition node {src_id} (Handle: {conn.get('sourceHandle')})", flush=True)
+                continue # Delete this invalid connection
+        
+        new_connections.append(conn)
+    
+    workflow_data["connections"] = new_connections
+
 def auto_fix_connections(graph_data):
     """Automatically fix common connection errors before validation"""
     if "workflows" not in graph_data or not graph_data["workflows"]:
@@ -535,8 +779,8 @@ def auto_fix_connections(graph_data):
         if ntype in ["webhook", "trigger"]:
             continue
         
-        # If orphaned and not a condition node
-        if not incoming[nid] and ntype != "condition":
+        # If orphaned (allow condition nodes to be fixed too)
+        if not incoming[nid]:
             # Find previous node in sequence
             if i > 0:
                 prev_node = nodes[i - 1]
@@ -732,8 +976,13 @@ def normalize_workflow_format(graph_data):
         
         # Fix integration nodes: ensure filter, stringified timeout, and GitLab specific fields
         if node.get("type") == "integration":
+            task = node.get("task", "")
             if "task_type_filter" not in node:
-                node["task_type_filter"] = "action"
+                # Intelligently set filter based on task name
+                if task.startswith("check_"):
+                    node["task_type_filter"] = "check"
+                else:
+                    node["task_type_filter"] = "action"
             
             p = node.get("params", {})
             # Ensure timeout_seconds is a string if present
@@ -868,13 +1117,17 @@ def planner_node(state: AgentState):
                             for field in fields_to_remove:
                                 node.pop(field, None)
 
-        # --- AUTO-FIX: Repair common connection errors ---
-        print("DEBUG: Running auto-fix for connection errors...", flush=True)
-        auto_fix_connections(graph_data)
-        
         # --- POST-PROCESSING: Normalize node IDs to match variables ---
         print("DEBUG: Normalizing node IDs...", flush=True)
         normalize_node_ids(graph_data)
+
+        # --- AUTO-FIX: Sanitize connections (remove branches from non-condition nodes) ---
+        print("DEBUG: Sanitizing connections...", flush=True)
+        sanitize_connections(graph_data)
+
+        # --- AUTO-FIX: Repair common connection errors ---
+        print("DEBUG: Running auto-fix for connection errors...", flush=True)
+        auto_fix_connections(graph_data)
         
         # --- POST-PROCESSING: Normalize workflow format ---
         print("DEBUG: Normalizing workflow format...", flush=True)
